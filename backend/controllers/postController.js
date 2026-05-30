@@ -18,7 +18,7 @@ exports.createPost = async (req, res) => {
       posts data changed now.
     */
 
-    await redisClient.del("posts");
+    // await redisClient.del("posts");
 
     res.status(201).json(post);
   } catch (error) {
@@ -36,25 +36,34 @@ exports.getPosts = async (req, res) => {
       Check Redis cache first
     */
 
-    const cachedPosts = await redisClient.get("posts");
+    // const cachedPosts = await redisClient.get("posts");
 
     /*
       CACHE HIT
     */
 
-    if (cachedPosts) {
-      console.log("Data from Redis");
+    // if (cachedPosts) {
+    //   console.log("Data from Redis");
 
-      return res.json(JSON.parse(cachedPosts));
-    }
+    //   return res.json(JSON.parse(cachedPosts));
+    // }
 
     /*
       CACHE MISS
     */
 
     console.log("Data from MongoDB");
+    let queryObj = {};
+    let query = Post.find().cache();
 
-    const posts = await Post.find();
+    if (req.query.fields) {
+      const showFields = req.query.fields.split(",").join(" ");
+      query = query.select(showFields);
+    } else {
+      query = query.select("-__v");
+    }
+
+    const posts = await query;
 
     /*
       Store in Redis
@@ -62,9 +71,7 @@ exports.getPosts = async (req, res) => {
       EX = expiry time in seconds
     */
 
-    await redisClient.set("posts", JSON.stringify(posts), {
-      EX: 60,
-    });
+    // await redisClient.set("posts", JSON.stringify(posts));
 
     res.json(posts);
   } catch (error) {

@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-
+require("./cache");
 const userRouter = require("./routes/userRouter");
 const postRoutes = require("./routes/postRoutes");
 
